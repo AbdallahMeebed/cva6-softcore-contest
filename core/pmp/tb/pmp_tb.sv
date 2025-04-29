@@ -10,15 +10,21 @@
 //
 // Author: Moritz Schneider, ETH Zurich
 // Date: 2.10.2019
-// Description: 
+// Description:
+
+// import tb_pkg::*;
+// `include "riscv.sv"
+// `include "tb_pkg.sv"
+// `include "config_pkg.sv"
 
 import tb_pkg::*;
 
-module pmp_tb;
-  timeunit 1ns; timeprecision 1ps;
+`timescale 1ns/1ps
 
-  localparam int unsigned WIDTH = 16;
-  localparam int unsigned PMP_LEN = 13;
+module pmp_tb;
+
+  localparam int unsigned WIDTH = 34;
+  localparam int unsigned PMP_LEN = 32;
   localparam int unsigned NR_ENTRIES = 4;
 
   logic [WIDTH-1:0] addr;
@@ -62,12 +68,13 @@ module pmp_tb;
     // pmp 3
     base = 16'b00011001_00000000;
     size = 8;
-    conf_addr[2] = P#(
-        .WIDTH  (WIDTH),
-        .PMP_LEN(PMP_LEN)
-    )::base_to_conf(
-        base, size
-    );
+    // conf_addr[2] = P#(
+    //     .WIDTH  (WIDTH),
+    //     .PMP_LEN(PMP_LEN)
+    // )::base_to_conf(
+    //     base, size
+    // );
+    conf_addr[2] = 32'b00000000001001100000000000011111;
     conf[2].addr_mode = riscv::NAPOT;
     conf[2].access_type = riscv::ACCESS_READ | riscv::ACCESS_WRITE | riscv::ACCESS_EXEC;
 
@@ -79,12 +86,13 @@ module pmp_tb;
     // pmp 1
     base = 16'b00011001_10110000;
     size = 4;
-    conf_addr[1] = P#(
-        .WIDTH  (WIDTH),
-        .PMP_LEN(PMP_LEN)
-    )::base_to_conf(
-        base, size
-    );
+    // conf_addr[1] = P#(
+    //     .WIDTH  (WIDTH),
+    //     .PMP_LEN(PMP_LEN)
+    // )::base_to_conf(
+    //     base, size
+    // );
+    conf_addr[1] = 32'b00000011011001100000000000000001;
     conf[1].addr_mode = riscv::NAPOT;
     conf[1].access_type = '0;
 
@@ -95,13 +103,15 @@ module pmp_tb;
 
     // pmp 2
     base = 16'b00011001_10111000;
+
     size = 3;
-    conf_addr[0] = P#(
-        .WIDTH  (WIDTH),
-        .PMP_LEN(PMP_LEN)
-    )::base_to_conf(
-        base, size
-    );
+    // conf_addr[0] = P#(
+    //     .WIDTH  (WIDTH),
+    //     .PMP_LEN(PMP_LEN)
+    // )::base_to_conf(
+    //     base, size
+    // );
+    conf_addr[0] = 32'b00000111011001100000000000000000;
     conf[0].addr_mode = riscv::NAPOT;
     conf[0].access_type = riscv::ACCESS_READ;
 

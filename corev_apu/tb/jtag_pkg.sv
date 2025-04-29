@@ -16,7 +16,7 @@
  * Sebastien Jacq - sjthales on github.com
  */
 `timescale 1ns/1ps
- 
+
 import ariane_pkg::*;
 
 package jtag_pkg;
@@ -363,7 +363,7 @@ package jtag_pkg;
       ref logic s_tdo
    );
       automatic JTAG_reg #(.size(JTAG_IDCODE_WIDTH), .instr({JTAG_SOC_IDCODE, JTAG_SOC_BYPASS})) jtag_idcode = new;
-      //as we have two tap in Daisy Chain, always one bit more for the bypass --> NOT in pulpino 
+      //as we have two tap in Daisy Chain, always one bit more for the bypass --> NOT in pulpino
       logic [31:0] s_idcode;
       jtag_idcode.setIR(s_tck, s_tms, s_trstn, s_tdi);
       jtag_idcode.shift('0, s_idcode, s_tck, s_tms, s_trstn, s_tdi, s_tdo);
@@ -1530,7 +1530,7 @@ package jtag_pkg;
             for (int i=0;i<256;i=i+1) begin
                spi_addr       = stimuli[num_stim][63:32]; // assign address
                jtag_data   = stimuli[num_stim][31:0];  // assign data
-        
+
                if (spi_addr != (spi_addr_old + 32'h4))
                   begin
                      spi_addr_old = spi_addr - 32'h4;
@@ -1568,7 +1568,7 @@ package jtag_pkg;
                   s_tdi,
                   s_tdo
                );
-               
+
             end
             $display("[JTAG] Loading L2 - Written up to %x (%t)", spi_addr[31:0]+4, $realtime);
 
@@ -1577,8 +1577,8 @@ package jtag_pkg;
          this.set_sbautoincrement(1'b0, s_tck, s_tms, s_trstn, s_tdi, s_tdo);
 
       endtask
-      
-      
+
+
       task load_L2_ini(
                input int   num_stim,
                ref   logic [95:0] stimuli [100000:0],
@@ -1588,7 +1588,7 @@ package jtag_pkg;
                ref   logic s_tdi,
                ref   logic s_tdo
             );
-      
+
                logic [1:0][31:0]   jtag_data;
                logic [31:0]        jtag_addr;
                logic [31:0]        spi_addr;
@@ -1597,25 +1597,25 @@ package jtag_pkg;
                logic [1:0]         dm_op;
                logic [31:0]        dm_data;
                logic [6:0]         dm_addr;
-      
+
                spi_addr        = stimuli[num_stim][95:64]; // assign address
                jtag_data[0]    = stimuli[num_stim][63:0];  // assign data
-      
+
                this.set_sbreadonaddr(1'b0, s_tck, s_tms, s_trstn, s_tdi, s_tdo);
                this.set_sbautoincrement(1'b0, s_tck, s_tms, s_trstn, s_tdi, s_tdo);
-      
+
                $display("[JTAG] Loading L2 with debug module jtag interface");
-      
+
                spi_addr_old = spi_addr - 32'h8;
-      
+
                while (more_stim) begin // loop until we have no more stimuli
-      
+
                   jtag_addr = stimuli[num_stim][95:64];
                   for (int i=0;i<256;i=i+2) begin
                      spi_addr       = stimuli[num_stim][95:64]; // assign address
                      jtag_data[0]   = stimuli[num_stim][31:0];  // assign data
                      jtag_data[1]   = stimuli[num_stim][63:32]; // assign data
-      
+
                      if (spi_addr != (spi_addr_old + 32'h8))
                         begin
                            spi_addr_old = spi_addr - 32'h8;
@@ -1629,7 +1629,7 @@ package jtag_pkg;
                         break;
                      end
                      spi_addr_old = spi_addr;
-      
+
                      this.set_dmi(
                         2'b10,           //write
                         7'h39,           //sbaddress0,
@@ -1641,7 +1641,7 @@ package jtag_pkg;
                         s_tdi,
                         s_tdo
                      );
-      
+
                      this.set_dmi(
                         2'b10,           //write
                         7'h3C,           //sbdata0,
@@ -1665,7 +1665,7 @@ package jtag_pkg;
                         s_tdi,
                         s_tdo
                      );
-      
+
                      this.set_dmi(
                         2'b10,           //write
                         7'h3C,           //sbdata0,
@@ -1679,11 +1679,11 @@ package jtag_pkg;
                      );
                   end
                   $display("[JTAG] Loading L2 - Written up to %x (%t)", spi_addr[31:0]+4, $realtime);
-      
+
                end
                this.set_sbreadonaddr(1'b1, s_tck, s_tms, s_trstn, s_tdi, s_tdo);
                this.set_sbautoincrement(1'b0, s_tck, s_tms, s_trstn, s_tdi, s_tdo);
-      
+
             endtask
 
 	task load_L2_ariane(
@@ -1695,7 +1695,7 @@ package jtag_pkg;
                ref   logic s_tdi,
                ref   logic s_tdo
             );
-      
+
                logic [1:0][31:0]   jtag_data;
                logic [31:0]        jtag_addr;
                logic [31:0]        spi_addr;
@@ -1704,25 +1704,25 @@ package jtag_pkg;
                logic [1:0]         dm_op;
                logic [31:0]        dm_data;
                logic [6:0]         dm_addr;
-      
+
                spi_addr        = stimuli[num_stim][95:64]; // assign address
                jtag_data[0]    = stimuli[num_stim][63:0];  // assign data
-      
+
                this.set_sbreadonaddr(1'b0, s_tck, s_tms, s_trstn, s_tdi, s_tdo);
                this.set_sbautoincrement(1'b0, s_tck, s_tms, s_trstn, s_tdi, s_tdo);
-      
+
                $display("[JTAG] Loading L2 with debug module jtag interface");
-      
+
                spi_addr_old = spi_addr - 32'h8;
-      
+
                while (more_stim) begin // loop until we have no more stimuli
-      
+
                   jtag_addr = stimuli[num_stim][95:64];
                   for (int i=0;i<256;i=i+2) begin
                      spi_addr       = stimuli[num_stim][95:64]; // assign address
                      jtag_data[0]   = stimuli[num_stim][31:0];  // assign data
                      jtag_data[1]   = stimuli[num_stim][63:32]; // assign data
-      
+
                      if (spi_addr != (spi_addr_old + 32'h8))
                         begin
                            spi_addr_old = spi_addr - 32'h8;
@@ -1736,7 +1736,7 @@ package jtag_pkg;
                         break;
                      end
                      spi_addr_old = spi_addr;
-      
+
                      this.set_dmi(
                         2'b10,           //write
                         7'h3D,           //sbdata1,
@@ -1760,7 +1760,7 @@ package jtag_pkg;
                         s_tdi,
                         s_tdo
                      );
-      
+
                      this.set_dmi(
                         2'b10,           //write
                         7'h3C,           //sbdata0,
@@ -1772,15 +1772,15 @@ package jtag_pkg;
                         s_tdi,
                         s_tdo
                      );
-      
-                     
+
+
                   end
                  // $display("[JTAG] Loading L2 - Written up to %x (%t)", spi_addr[31:0]+4, $realtime);
-      
+
                end
                this.set_sbreadonaddr(1'b1, s_tck, s_tms, s_trstn, s_tdi, s_tdo);
                this.set_sbautoincrement(1'b0, s_tck, s_tms, s_trstn, s_tdi, s_tdo);
-      
+
             endtask
       // discover harts by writting all ones to hartsel and reading it back
       task test_discover_harts(

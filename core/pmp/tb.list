@@ -1,0 +1,9 @@
+../include/config_pkg.sv
+../include/cv32a6_im_contest_config_pkg.sv
+../include/riscv_pkg.sv
+../include/ariane_pkg.sv
+../../vendor/pulp-platform/common_cells/src/cf_math_pkg.sv
+./tb/tb_pkg.sv
+./src/pmp.sv
+./src/pmp_entry.sv
+../../vendor/pulp-platform/common_cells/src/lzc.sv

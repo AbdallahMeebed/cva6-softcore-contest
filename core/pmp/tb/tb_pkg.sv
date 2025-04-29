@@ -10,7 +10,7 @@
 //
 // Author: Moritz Schneider, ETH Zurich
 // Date: 2.10.2019
-// Description: 
+// Description:
 
 package tb_pkg;
 

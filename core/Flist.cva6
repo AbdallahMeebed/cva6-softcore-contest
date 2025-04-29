@@ -187,4 +187,8 @@ ${CVA6_REPO_DIR}/core/mmu_sv32/cva6_ptw_sv32.sv
 ${CVA6_REPO_DIR}/core/mmu_sv32/cva6_tlb_sv32.sv
 ${CVA6_REPO_DIR}/core/mmu_sv32/cva6_shared_tlb_sv32.sv
 
+// JTAG
+${CVA6_REPO_DIR}/corev_apu/riscv-dbg/src/dm_pkg.sv
+${CVA6_REPO_DIR}/corev_apu/tb/jtag_pkg.sv
+
 // end of manifest

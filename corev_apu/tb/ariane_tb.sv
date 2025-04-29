@@ -89,7 +89,7 @@ module ariane_tb;
 
     longint unsigned cycles;
     longint unsigned max_cycles;
-    
+
     logic        jtag_TDO_driven;
 
     logic        jtag_TRSTn = 1'b0;
@@ -162,37 +162,37 @@ module ariane_tb;
         rst_ni = 1'b0;
 
         #10ns
-       
+
         jtag_pkg::jtag_reset(jtag_TCK, jtag_TMS, jtag_TRSTn, jtag_TDI);
         jtag_pkg::jtag_softreset(jtag_TCK, jtag_TMS, jtag_TRSTn, jtag_TDI);
         #5us;
-    
+
         rst_ni = 1'b1;
 
         debug_mode_if.init_dmi_access(jtag_TCK, jtag_TMS, jtag_TRSTn, jtag_TDI);
         $display("[TB] %t - init_dmi_access", $realtime);
-        
+
         debug_mode_if.set_dmactive(1'b1, jtag_TCK, jtag_TMS, jtag_TRSTn, jtag_TDI, jtag_TDO_data);
         $display("[TB] %t - set_dmactive", $realtime);
-    
+
         debug_mode_if.set_hartsel(FC_CORE_ID, jtag_TCK, jtag_TMS, jtag_TRSTn, jtag_TDI, jtag_TDO_data);
         $display("[TB] %t - set_hartsel", $realtime);
 
    	$display("[TB] %t - Halting the Core", $realtime);
     	debug_mode_if.halt_harts(jtag_TCK, jtag_TMS, jtag_TRSTn, jtag_TDI, jtag_TDO_data);
-    
+
 
         $value$plusargs("binary_mem=%s", binary_mem);
         $display("Loading application to memory from %s", binary_mem);
-        //$readmemh(binary_mem, dut.i_sram.genblk1[0].genblk1.i_ram.Mem_DP);  
-        $readmemh(binary_mem, dut.i_sram.gen_cut[0].i_tc_sram_wrapper.i_ram.Mem_DP);  
+        //$readmemh(binary_mem, dut.i_sram.genblk1[0].genblk1.i_ram.Mem_DP);
+        $readmemh(binary_mem, dut.i_sram.gen_cut[0].i_tc_sram_wrapper.i_ram.Mem_DP);
 
-    
+
         // write dpc to addr_i so that we know where we resume
 	$display("[TB] %t - Writing the boot address into dpc", $realtime);
         debug_mode_if.write_reg_abstract_cmd(riscv::CSR_DPC, BEGIN_MEM_INSTR, jtag_TCK, jtag_TMS, jtag_TRSTn, jtag_TDI, jtag_TDO_data);
 
-    
+
         // we have set dpc and loaded the binary, we can go now
         $display("[TB] %t - Resuming the CORE", $realtime);
         debug_mode_if.resume_harts(jtag_TCK, jtag_TMS, jtag_TRSTn, jtag_TDI, jtag_TDO_data);

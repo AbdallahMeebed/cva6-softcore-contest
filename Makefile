@@ -1,5 +1,5 @@
 # Copyright (c) 2020 Thales.
-# 
+#
 # Copyright and related rights are licensed under the Apache
 # License, Version 2.0 (the "License"); you may not use this file except in
 # compliance with the License.  You may obtain a copy of the License at
@@ -46,7 +46,8 @@ VCOM ?= vcom$(questa_version)
 VLIB ?= vlib$(questa_version)
 VMAP ?= vmap$(questa_version)
 # verilator version
-verilator      ?= $(PWD)/tmp/verilator-v5.008/verilator/bin/verilator
+# verilator      ?= $(PWD)/tmp/verilator-v5.008/verilator/bin/verilator
+verilator      ?= verilator
 # traget option
 target-options ?=
 # additional definess
@@ -56,7 +57,8 @@ test-location  ?= output/test
 # set to either nothing or -log
 torture-logs   :=
 # custom elf bin to run with sim or sim-verilator
-elf-bin        ?= sw/app/benchmarks/coremark.riscv
+elf-bin        ?= sw/app/coremark.riscv
+# elf-bin        ?= sw/app/mnist.riscv
 
 # Application to simulate
 APP            ?= mnist
@@ -64,6 +66,9 @@ APP            ?= mnist
 # root path
 mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
 root-dir := $(dir $(mkfile_path))
+
+# Custom for abdallah
+home-dir := $(CURDIR)
 
 ifndef CVA6_REPO_DIR
 $(warning must set CVA6_REPO_DIR to point at the root of CVA6 sources -- doing it for you...)
@@ -130,8 +135,9 @@ ariane_pkg := \
               corev_apu/tb/axi_intf.sv                               \
               corev_apu/register_interface/src/reg_intf.sv           \
               corev_apu/tb/ariane_soc_pkg.sv                         \
-              corev_apu/riscv-dbg/src/dm_pkg.sv                      \
               corev_apu/tb/ariane_axi_soc_pkg.sv
+# commented
+              # corev_apu/riscv-dbg/src/dm_pkg.sv                      \
 ariane_pkg := $(addprefix $(root-dir), $(ariane_pkg))
 
 # Test packages
@@ -152,6 +158,8 @@ CFLAGS += -I$(QUESTASIM_HOME)/include         \
           -I$(VCS_HOME)/include               \
           -I$(RISCV)/include                  \
           -I$(SPIKE_INSTALL_DIR)/include      \
+          -I$(home-dir)/verif/core-v-verif/vendor/riscv/riscv-isa-sim \
+          -I$(home-dir)/verif/core-v-verif/lib/dpi_dasm\
           -std=c++17 -I../corev_apu/tb/dpi -O3
 
 ifdef XCELIUM_HOME
@@ -226,7 +234,8 @@ copro_src := core/cvxif_example/include/cvxif_instr_pkg.sv \
              $(wildcard core/cvxif_example/*.sv)
 copro_src := $(addprefix $(root-dir), $(copro_src))
 
-uart_src := $(wildcard corev_apu/fpga/src/apb_uart/src/*.vhd)
+# uart_src := $(wildcard corev_apu/fpga/src/apb_uart/src/*.vhd)
+uart_src := $(wildcard corev_apu/fpga/src/apb_uart/src/*.sv)
 uart_src := $(addprefix $(root-dir), $(uart_src))
 
 fpga_src :=  $(wildcard corev_apu/fpga/src/*.sv) $(wildcard corev_apu/fpga/src/bootrom/*.sv) $(wildcard corev_apu/fpga/src/ariane-ethernet/*.sv) common/local/util/tc_sram_fpga_wrapper.sv vendor/pulp-platform/fpga-support/rtl/SyncSpRamBeNx64.sv
@@ -338,7 +347,7 @@ $(library):
 
 # target used to run simulation, make sim APP=<software application to run on CVA6>
 # if you want to run in batch mode, use make <testname> batch-mode=1
-sim: build 
+sim: build
 	echo $(riscv-benchmarks)
 	vsim${questa_version} +permissive $(questa-flags) $(questa-cmd) -lib $(library) +MAX_CYCLES=$(max_cycles) +UVM_TESTNAME=$(test_case) \
 	 $(uvm-flags) $(QUESTASIM_FLAGS)  \
@@ -353,7 +362,7 @@ check-benchmarks:
 
 benchmark:
 	cd sw/app && make $(APP).mem && make $(APP).coe
-	
+
 
 
 
@@ -500,13 +509,14 @@ xrun-check-benchmarks:
 xrun-ci: xrun-asm-tests xrun-amo-tests xrun-mul-tests xrun-fp-tests xrun-benchmarks
 
 # verilator-specific
-verilate_command := $(verilator) --no-timing verilator_config.vlt                                                            \
+verilate_command := $(verilator) verilator_config.vlt                                                            \
                     -f core/Flist.cva6                                                                           \
                     $(filter-out %.vhd, $(ariane_pkg))                                                           \
                     $(filter-out core/fpu_wrap.sv, $(filter-out %.vhd, $(filter-out %_config_pkg.sv, $(src))))   \
                     +define+$(defines)$(if $(TRACE_FAST),+VM_TRACE)$(if $(TRACE_COMPACT),+VM_TRACE+VM_TRACE_FST) \
                     corev_apu/tb/common/mock_uart.sv                                                             \
                     +incdir+corev_apu/axi_node                                                                   \
+                    +incdir+corev_apu/fpga/src/apb_uart/src                                                      \
                     $(if $(verilator_threads), --threads $(verilator_threads))                                   \
                     --unroll-count 256                                                                           \
                     -Wall                                                                                        \
@@ -519,6 +529,9 @@ verilate_command := $(verilator) --no-timing verilator_config.vlt               
                     -Wno-UNUSED                                                                                  \
                     -Wno-UNOPTFLAT                                                                               \
                     -Wno-BLKANDNBLK                                                                              \
+					-Wno-WIDTHTRUNC \
+					-Wno-WIDTHEXPAND \
+					-Wno-TIMESCALEMOD \
                     -Wno-style                                                                                   \
                     $(if ($(PRELOAD)!=""), -DPRELOAD=1,)                                                         \
                     $(if $(PROFILE),--stats --stats-vars --profile-cfuncs,)                                      \
@@ -528,18 +541,20 @@ verilate_command := $(verilator) --no-timing verilator_config.vlt               
                     -LDFLAGS "-L$(RISCV)/lib -L$(SPIKE_INSTALL_DIR)/lib -Wl,-rpath,$(RISCV)/lib -Wl,-rpath,$(SPIKE_INSTALL_DIR)/lib -lfesvr$(if $(PROFILE), -g -pg,) -lpthread $(if $(TRACE_COMPACT), -lz,)" \
                     -CFLAGS "$(CFLAGS)$(if $(PROFILE), -g -pg,) -DVL_DEBUG"                                      \
                     --cc  --vpi                                                                                  \
-                    $(list_incdir) --top-module ariane_testharness                                               \
+                    $(list_incdir) --top-module ariane_tb                                               \
                     --threads-dpi none                                                                           \
                     --Mdir $(ver-library) -O3                                                                    \
-                    --exe corev_apu/tb/ariane_tb.cpp corev_apu/tb/dpi/SimDTM.cc corev_apu/tb/dpi/SimJTAG.cc      \
-                    corev_apu/tb/dpi/remote_bitbang.cc corev_apu/tb/dpi/msim_helper.cc
+					--binary corev_apu/tb/ariane_tb.sv
+                    # --exe corev_apu/tb/ariane_tb.cpp corev_apu/tb/dpi/SimDTM.cc corev_apu/tb/dpi/SimJTAG.cc      \
+                    # corev_apu/tb/dpi/remote_bitbang.cc corev_apu/tb/dpi/msim_helper.cc
 
 
 # User Verilator, at some point in the future this will be auto-generated
 verilate:
 	@echo "[Verilator] Building Model$(if $(PROFILE), for Profiling,)"
 	$(verilate_command)
-	cd $(ver-library) && $(MAKE) -j${NUM_JOBS} -f Variane_testharness.mk
+	cd $(ver-library) && $(MAKE) -j${NUM_JOBS} -f Variane_tb.mk
+	# cd $(ver-library) && $(MAKE) -j${NUM_JOBS} -f Variane_testharness.mk
 
 sim-verilator: verilate
 	$(ver-library)/Variane_testharness $(elf-bin)
@@ -672,10 +687,10 @@ cva6_fpga_ddr: $(ariane_pkg) $(util) $(src) $(fpga_src) $(uart_src) $(src_flist)
 	cd corev_apu/fpga && make cva6_fpga PS7_DDR=1 BRAM=0 XILINX_PART=$(XILINX_PART) XILINX_BOARD=$(XILINX_BOARD) CLK_PERIOD_NS=$(CLK_PERIOD_NS) BATCH_MODE=$(BATCH_MODE) FPGA=1
 
 
-program_cva6_fpga: 
+program_cva6_fpga:
 	@echo "[FPGA] Program FPGA"
 	cd corev_apu/fpga && make program_cva6_fpga BOARD=$(BOARD) XILINX_PART=$(XILINX_PART) XILINX_BOARD=$(XILINX_BOARD) CLK_PERIOD_NS=$(CLK_PERIOD_NS) BATCH_MODE=$(BATCH_MODE)
-	
+
 
 build-spike:
 	cd tb/riscv-isa-sim && mkdir -p build && cd build && ../configure --prefix=`pwd`/../install --with-fesvr=$(RISCV) --enable-commitlog && make -j8 install
