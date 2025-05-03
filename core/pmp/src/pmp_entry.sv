@@ -33,7 +33,8 @@ module pmp_entry #(
   logic [PLEN-1:0] base;
   logic [PLEN-1:0] mask;
   int unsigned size;
-  assign conf_addr_n = {2'b11, ~conf_addr_i};
+  // assign conf_addr_n = {2'b11, ~conf_addr_i};
+  assign conf_addr_n = ~conf_addr_i;
   lzc #(
       .WIDTH(PLEN),
       .MODE (1'b0)
@@ -70,6 +71,7 @@ module pmp_entry #(
         else begin
           // use the extracted trailing ones
           size = {{(32 - $clog2(PLEN)) {1'b0}}, trail_ones} + 3;
+          $display("Size: %d", size);
         end
 
         mask = '1 << size;
