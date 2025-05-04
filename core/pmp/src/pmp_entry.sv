@@ -35,7 +35,7 @@ module pmp_entry #(
   int unsigned size;
   // assign conf_addr_n = {2'b11, ~conf_addr_i};
   assign conf_addr_n = ~conf_addr_i;
-  lzc #(
+  lzc32 #(
       .WIDTH(PLEN),
       .MODE (1'b0)
   ) i_lzc (
